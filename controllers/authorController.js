@@ -21,14 +21,23 @@ exports.getAllAuthors = async function(req, res) {
     }
 };
 
-exports.createAuthor = async function (req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            errors: errors.array()
+exports.getAuthor = async function (req, res) {
+    try {
+        const author = await authorsService.getAuthorById(req.params.authorID);
+
+        if(!author) {
+            return res.status(404).send();
+        }
+
+        return res.status(200).json(author);
+    } catch {
+        return res.status(error.statusCode ?? 500).json({
+            message: `ERROR: ${err.message}`
         });
     }
+}
 
+exports.createAuthor = async function (req, res) {
     try{
         const newAuthor = await authorsService.createAuthor(req.body);
         return res.status(200).json(newAuthor);
@@ -55,3 +64,14 @@ exports.deleteAuthor = async function (req, res) {
     await author.destroy();
     return res.status(204).json({})
 };
+
+exports.updateAuthor = async function (req, res) {
+    try {
+        const updatedAuthor = await authorsService.updateAuthor(req.params.authorID, req.body);
+        return res.status(200).json(updatedAuthor);
+    } catch(error) {
+        return res.status(error.statusCode ?? 500).json({
+            message: `ERROR: No author exists with id ${authorID}`
+        })
+    }
+}

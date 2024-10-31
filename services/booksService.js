@@ -1,9 +1,10 @@
 const db = require("../models");
 const ValidationError = require("../errors/validationError");
+const InstanceNotFoundError = require("../errors/instanceNotFoundError");
 const { Op } = require("sequelize");
 
 exports.createBook = async (body) => {
-    const { title, isbn, shelfLocation, availableQuantity, author_id } = body;
+    const { title, isbn, shelf_location, available_quantity, author_id } = body;
 
     if (await isISBNExists(isbn)) {
         throw new ValidationError("Book with this ISBN already exists");
@@ -17,8 +18,8 @@ exports.createBook = async (body) => {
         title,
         isbn,
         author_id,
-        'shelf_location': shelfLocation,
-        'available_quantity': availableQuantity
+        shelf_location,
+        available_quantity
     });
 };
 
@@ -60,13 +61,66 @@ exports.getAuthorsAssocQueryFilters = (queryParams) => {
     return conditions;
 };
 
+exports.getBookById = async (bookID) => {
+    if(!bookID) {
+        return null;
+    }
 
-async function isISBNExists(isbn) {
-    const existingBook = await db.Book.findOne({ where: { isbn } });
+    return await db.Book.findOne({
+        include: [
+            {
+                model: db.Author,
+                as: 'author',
+                attributes: ['name'],
+            }
+        ],
+        where: {
+            id: bookID
+        }
+    });
+};
+
+exports.updateBook = async (bookID, body) => {
+    let book = await this.getBookById(bookID);
+
+    if(!book) {
+        throw new InstanceNotFoundError();
+    }
+
+    if (body.isbn && await isISBNExists(body.isbn, bookID)) {
+        throw new ValidationError("Book with this ISBN already exists");
+    }
+
+    if (body.author_id && !(await isAuthorExists(body.author_id))) {
+        throw new ValidationError("Invalid Author ID");
+    }
+
+    book.set(body);
+
+    await book.save();
+
+    return book;
+}
+
+async function isISBNExists(isbn, bookID=0) {
+    if(!isbn) {
+        return false;
+    }
+    const existingBook = await db.Book.findOne({
+        where: {
+            isbn,
+            [Op.not]: {
+                id: bookID
+            }
+        }
+    });
     return !!existingBook;
 }
 
 async function isAuthorExists(authorId) {
+    if(!authorId) {
+        return false;
+    }
     const author = await db.Author.findOne({ where: { id: authorId } });
     return !!author;
 }
