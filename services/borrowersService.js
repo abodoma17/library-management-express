@@ -46,6 +46,28 @@ exports.updateBorrower = async (borrowerID, body) => {
     return borrower;
 }
 
+exports.getQueryConditions = (queryParams = {}) => {
+    let conditions = {};
+
+    if(!queryParams) {
+        return conditions;
+    }
+
+    if (queryParams.name) {
+        conditions.name = {
+           [Op.like]: `%${queryParams.name}%`
+        }
+    }
+
+    if (queryParams.email) {
+        conditions.email = {
+            [Op.like]: `%${queryParams.email}%`
+        }
+    }
+
+    return conditions;
+}
+
 async function isDuplicateEmail(email, borrowerID = 0) {
     if(!email) {
         return false;

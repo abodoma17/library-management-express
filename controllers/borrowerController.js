@@ -3,7 +3,11 @@ const borrowersService = require("../services/borrowersService");
 
 exports.getAllBorrowers = async (req, res) => {
     try {
-        const borrowers = await db.Borrower.findAll();
+        const queryParams = req.query;
+        const conditions = borrowersService.getQueryConditions(queryParams);
+        const borrowers = await db.Borrower.findAll({
+            where: conditions
+        });
         return res.status(200).json(borrowers);
     } catch (error) {
         return res.status(error.statusCode ?? 500).json({
