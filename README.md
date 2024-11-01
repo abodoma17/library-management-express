@@ -37,6 +37,7 @@ This is a backend API for managing library operations, including managing books,
 1. **Performance**: The system is optimized for reading operations since searching and listing books/borrowers will be frequent operations.
 2. **Scalability**: The system design supports the addition of new features in the future, like reservations or reviews.
 3. **Security**: Ensure that user inputs are validated to prevent SQL injection or other potential security threats.
+4. **Rate Limiting**: Implemented on the checkout and return endpoints to limit the number of requests to a maximum of 10 per 3 minutes from a single IP address.
 
 ## Technologies
 - Node.js
