@@ -32,6 +32,7 @@ This is a backend API for managing library operations, including managing books,
    - A borrower can return a book.
    - A borrower can check the books they currently have.
    - The system tracks due dates for the books and lists books that are overdue.
+   - Export last month overdue books and borrowed books.
 
 ### Non-functional Requirements
 1. **Performance**: The system is optimized for reading operations since searching and listing books/borrowers will be frequent operations.
