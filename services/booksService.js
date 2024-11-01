@@ -1,10 +1,10 @@
 const db = require("../models");
 const ValidationError = require("../errors/validationError");
 const InstanceNotFoundError = require("../errors/instanceNotFoundError");
-const { Op } = require("sequelize");
+const {Op} = require("sequelize");
 
 exports.createBook = async (body) => {
-    const { title, isbn, shelf_location, available_quantity, author_id } = body;
+    const {title, isbn, shelf_location, available_quantity, author_id} = body;
 
     if (await isISBNExists(isbn)) {
         throw new ValidationError("Book with this ISBN already exists");
@@ -14,29 +14,38 @@ exports.createBook = async (body) => {
         throw new ValidationError("Invalid Author ID");
     }
 
-    return await db.Book.create({
+    const book = await db.Book.create({
         title,
         isbn,
         author_id,
         shelf_location,
         available_quantity
     });
+
+    let author = await book.getAuthor();
+    let authorData = {
+        name: author.name,
+    }
+    return {
+        ...book.get(),
+        author: authorData
+    };
 };
 
 exports.getBooksQueryFilters = (queryParams) => {
     let conditions = {};
 
-    if(!queryParams) {
+    if (!queryParams) {
         return conditions;
     }
 
-    if(queryParams.title) {
+    if (queryParams.title) {
         conditions.title = {
             [Op.like]: `%${queryParams.title}%`
         };
     }
 
-    if(queryParams.isbn) {
+    if (queryParams.isbn) {
         conditions.isbn = {
             [Op.like]: `%${queryParams.isbn}%`
         }
@@ -48,11 +57,11 @@ exports.getBooksQueryFilters = (queryParams) => {
 exports.getAuthorsAssocQueryFilters = (queryParams) => {
     let conditions = {};
 
-    if(!queryParams) {
+    if (!queryParams) {
         return conditions;
     }
 
-    if(queryParams.author_name) {
+    if (queryParams.author_name) {
         conditions.name = {
             [Op.like]: `%${queryParams.author_name}%`
         }
@@ -62,7 +71,7 @@ exports.getAuthorsAssocQueryFilters = (queryParams) => {
 };
 
 exports.getBookById = async (bookID) => {
-    if(!bookID) {
+    if (!bookID) {
         return null;
     }
 
@@ -81,17 +90,18 @@ exports.getBookById = async (bookID) => {
 };
 
 exports.updateBook = async (bookID, body) => {
+    const { isbn, author_id } = body;
     let book = await this.getBookById(bookID);
 
-    if(!book) {
+    if (!book) {
         throw new InstanceNotFoundError();
     }
 
-    if (body.isbn && await isISBNExists(body.isbn, bookID)) {
+    if (isbn && await isISBNExists(isbn, bookID)) {
         throw new ValidationError("Book with this ISBN already exists");
     }
 
-    if (body.author_id && !(await isAuthorExists(body.author_id))) {
+    if (author_id && !(await isAuthorExists(author_id))) {
         throw new ValidationError("Invalid Author ID");
     }
 
@@ -99,11 +109,18 @@ exports.updateBook = async (bookID, body) => {
 
     await book.save();
 
-    return book;
+    let author = await book.getAuthor();
+    let authorData = {
+        name: author.name,
+    }
+    return {
+        ...book.get(),
+        author: authorData
+    };
 }
 
-async function isISBNExists(isbn, bookID=0) {
-    if(!isbn) {
+async function isISBNExists(isbn, bookID = 0) {
+    if (!isbn) {
         return false;
     }
     const existingBook = await db.Book.findOne({
@@ -118,9 +135,9 @@ async function isISBNExists(isbn, bookID=0) {
 }
 
 async function isAuthorExists(authorId) {
-    if(!authorId) {
+    if (!authorId) {
         return false;
     }
-    const author = await db.Author.findOne({ where: { id: authorId } });
+    const author = await db.Author.findOne({where: {id: authorId}});
     return !!author;
 }

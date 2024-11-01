@@ -1,12 +1,12 @@
 const db = require("../models");
 const ValidationError = require("../errors/validationError");
 const InstanceNotFoundError = require("../errors/instanceNotFoundError");
-const { Op } = require("sequelize");
+const {Op} = require("sequelize");
 
 exports.createAuthor = async (body) => {
-    const { name } = body;
+    const {name} = body;
 
-    if(await isNameExists(name)) {
+    if (await isNameExists(name)) {
         throw new ValidationError('Author with this name already exists');
     }
 
@@ -16,7 +16,7 @@ exports.createAuthor = async (body) => {
 };
 
 exports.getAuthorById = async (authorID) => {
-    if(!authorID) {
+    if (!authorID) {
         return null;
     }
 
@@ -36,13 +36,14 @@ exports.getAuthorById = async (authorID) => {
 }
 
 exports.updateAuthor = async (authorID, body) => {
+    const { name } = body;
     let author = await this.getAuthorById(authorID);
 
-    if(!author) {
+    if (!author) {
         throw new InstanceNotFoundError();
     }
 
-    if(body.name && await isNameExists(body.name, authorID)) {
+    if (name && await isNameExists(name, authorID)) {
         throw new ValidationError('Author with this name already exists');
     }
 
@@ -53,7 +54,7 @@ exports.updateAuthor = async (authorID, body) => {
     return author;
 }
 
-async function isNameExists (name, authorID = 0) {
+async function isNameExists(name, authorID = 0) {
     const existingAuthor = await db.Author.findOne({
         where: {
             name,

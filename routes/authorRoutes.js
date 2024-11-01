@@ -13,13 +13,13 @@ router.get('/:authorID', [
     authorController.getAuthor);
 
 router.post('/', [
-    check('name').notEmpty().withMessage('Name is required'),
+    check('name').notEmpty().withMessage('Name is required').trim().escape(),
     ValidateInputsMiddleware
 ], authorController.createAuthor);
 
 router.put('/:authorID', [
     check('authorID').isNumeric().withMessage('Book ID should be a number'),
-    check('name').notEmpty().withMessage('Name is required'),
+    check('name').notEmpty().withMessage('Name is required').trim().escape(),
     ValidateInputsMiddleware
 ], authorController.updateAuthor);
 

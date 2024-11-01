@@ -1,5 +1,5 @@
 const express = require('express');
-const { check } = require('express-validator');
+const {check} = require('express-validator');
 const router = express.Router();
 const bookController = require('../controllers/bookController');
 const validateInputsMiddleware = require('../middlewares/validateInputsMiddleware');
@@ -13,10 +13,10 @@ router.get('/:bookID', [
     bookController.getBook);
 
 router.post('/', [
-    check('title').notEmpty().withMessage('Title is required'),
-    check('isbn').notEmpty().withMessage('ISBN is required'),
-    check('shelf_location').notEmpty().withMessage('Shelf Location is required'),
-    check('available_quantity').isInt({ gt: 0 }).withMessage('Available Quantity must be a positive integer'),
+    check('title').notEmpty().withMessage('Title is required').trim().escape(),
+    check('isbn').notEmpty().withMessage('ISBN is required').trim().escape(),
+    check('shelf_location').notEmpty().withMessage('Shelf Location is required').trim().escape(),
+    check('available_quantity').isInt({gt: 0}).withMessage('Available Quantity must be a positive integer'),
     validateInputsMiddleware
 ], bookController.createBook);
 
@@ -27,16 +27,16 @@ router.delete('/:bookID', [
 
 router.put('/:bookID', [
     check('bookID').isNumeric().withMessage('Book ID should be a number'),
-    check('title').notEmpty().withMessage('Title is required'),
-    check('isbn').notEmpty().withMessage('ISBN is required'),
-    check('shelf_location').notEmpty().withMessage('Shelf Location is required'),
-    check('available_quantity').isInt({ gt: 0 }).withMessage('Available Quantity must be a positive integer'),
+    check('title').notEmpty().withMessage('Title is required').trim().escape(),
+    check('isbn').notEmpty().withMessage('ISBN is required').trim().escape(),
+    check('shelf_location').notEmpty().withMessage('Shelf Location is required').trim().escape(),
+    check('available_quantity').isInt({gt: 0}).withMessage('Available Quantity must be a positive integer'),
     validateInputsMiddleware
 ], bookController.putBook);
 
 router.patch('/:bookID', [
     check('bookID').isNumeric().withMessage('Book ID should be a number'),
-    check('available_quantity').optional().isInt({ gt: 0 }).withMessage('Available Quantity must be a positive integer'),
+    check('available_quantity').optional().isInt({gt: 0}).withMessage('Available Quantity must be a positive integer'),
     validateInputsMiddleware
 ], bookController.putBook);
 
