@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const borrowerController = require('../controllers/borrowerController');
+const borrowingController = require('../controllers/borrowingController');
 const {check} = require('express-validator');
 const validateInputsMiddleware = require('../middlewares/validateInputsMiddleware');
 

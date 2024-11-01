@@ -3,16 +3,7 @@ const authorsService = require("../services/authorsService");
 
 exports.getAllAuthors = async function (req, res) {
     try {
-        const authors = await db.Author.findAll({
-            include: {
-                model: db.Book,
-                as: "books",
-                attributes: [
-                    'title',
-                    'isbn'
-                ]
-            }
-        });
+        const authors = await db.Author.findAll();
 
         return res.status(200).json(authors);
     } catch (err) {
@@ -24,13 +15,29 @@ exports.getAllAuthors = async function (req, res) {
 
 exports.getAuthor = async function (req, res) {
     try {
-        const author = await authorsService.getAuthorById(req.params.authorID);
+        const author = await authorsService.getAuthorById(req.params.authorID, false);
 
         if (!author) {
             return res.status(404).send();
         }
 
         return res.status(200).json(author);
+    } catch {
+        return res.status(error.statusCode ?? 500).json({
+            message: `ERROR: ${err.message}`
+        });
+    }
+}
+
+exports.getAuthorBooks = async function (req, res) {
+    try {
+        const author = await authorsService.getAuthorById(req.params.authorID, true);
+
+        if (!author) {
+            return res.status(404).send();
+        }
+
+        return res.status(200).json(author.books);
     } catch {
         return res.status(error.statusCode ?? 500).json({
             message: `ERROR: ${err.message}`
@@ -51,14 +58,15 @@ exports.createAuthor = async function (req, res) {
 
 exports.deleteAuthor = async function (req, res) {
     const authorID = req.params.authorID;
+
     let author = await db.Author.findOne({
-        id: authorID
+        where: {
+            id: authorID
+        }
     });
 
     if (!author) {
-        return res.status(404).json({
-            message: `ERROR: No author exists with id ${authorID}`
-        })
+        return res.status(404).send()
     }
 
     await author.destroy();
@@ -70,8 +78,6 @@ exports.updateAuthor = async function (req, res) {
         const updatedAuthor = await authorsService.updateAuthor(req.params.authorID, req.body);
         return res.status(200).json(updatedAuthor);
     } catch (error) {
-        return res.status(error.statusCode ?? 500).json({
-            message: `ERROR: No author exists with id ${authorID}`
-        })
+        return res.status(error.statusCode ?? 500).send();
     }
 }

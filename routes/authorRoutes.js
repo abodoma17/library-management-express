@@ -12,6 +12,12 @@ router.get('/:authorID', [
     ],
     authorController.getAuthor);
 
+router.get('/:authorID/books', [
+        check('authorID').isNumeric().withMessage('Book ID should be a number'),
+        ValidateInputsMiddleware
+    ],
+    authorController.getAuthorBooks);
+
 router.post('/', [
     check('name').notEmpty().withMessage('Name is required').trim().escape(),
     ValidateInputsMiddleware

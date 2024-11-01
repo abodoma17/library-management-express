@@ -3,6 +3,13 @@ const ValidationError = require("../errors/validationError");
 const InstanceNotFoundError = require("../errors/instanceNotFoundError");
 const {Op} = require("sequelize");
 
+exports.getAllBorrowers = async (queryParams) => {
+    const conditions = _getBorrowerQueryConditions(queryParams);
+    return await db.Borrower.findAll({
+        where: conditions
+    });
+};
+
 exports.getBorrowerById = async (borrowerID = 0) => {
     if (!borrowerID) {
         return null;
@@ -46,7 +53,7 @@ exports.updateBorrower = async (borrowerID, body) => {
     return borrower;
 }
 
-exports.getQueryConditions = (queryParams = {}) => {
+_getBorrowerQueryConditions = (queryParams = {}) => {
     let conditions = {};
 
     if(!queryParams) {

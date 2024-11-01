@@ -1,13 +1,10 @@
 const db = require("../models");
 const borrowersService = require("../services/borrowersService");
+const borrowingService = require("../services/borrowingService");
 
 exports.getAllBorrowers = async (req, res) => {
     try {
-        const queryParams = req.query;
-        const conditions = borrowersService.getQueryConditions(queryParams);
-        const borrowers = await db.Borrower.findAll({
-            where: conditions
-        });
+        const borrowers = await borrowersService.getAllBorrowers(req.query);
         return res.status(200).json(borrowers);
     } catch (error) {
         return res.status(error.statusCode ?? 500).json({
@@ -57,14 +54,20 @@ exports.updateBorrower = async (req, res) => {
 
 exports.deleteBorrower = async (req, res) => {
     try {
-        const borrower = await db.Borrower.findOne({
-            where: {
-                id: req.params.borrowerID
-            }
-        });
+        const borrower = await borrowersService.getBorrowerById(req.params.borrowerID);
 
         if (!borrower) {
             return res.status(404).send();
+        }
+
+        const borrowedBooks = await borrowingService.getBorrowerBorrowedBooks(
+            req.params.borrowerID
+        );
+
+        if(borrowedBooks.length > 0) {
+            return res.status(400).json({
+                message: `Borrower currently has ${borrowedBooks.length} borrowed books and can not be deleted.`
+            });
         }
 
         await borrower.destroy()

@@ -15,29 +15,35 @@ exports.createAuthor = async (body) => {
     });
 };
 
-exports.getAuthorById = async (authorID) => {
+exports.getAuthorById = async (authorID, includeBooks = true) => {
     if (!authorID) {
         return null;
     }
 
-    return await db.Author.findOne({
-        where: {
-            id: authorID
-        },
-        include: {
+    let includes = [];
+
+    if(includeBooks) {
+        includes.push({
             model: db.Book,
             as: "books",
             attributes: [
                 'title',
                 'isbn'
             ]
-        }
+        });
+    }
+
+    return await db.Author.findOne({
+        where: {
+            id: authorID
+        },
+        include: includes
     });
 }
 
 exports.updateAuthor = async (authorID, body) => {
     const { name } = body;
-    let author = await this.getAuthorById(authorID);
+    let author = await this.getAuthorById(authorID, false);
 
     if (!author) {
         throw new InstanceNotFoundError();

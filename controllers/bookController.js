@@ -3,20 +3,7 @@ const booksService = require('../services/booksService');
 
 exports.getAllBooks = async function (req, res) {
     try {
-        const booksConditions = booksService.getBooksQueryFilters(req.query);
-        const authorConditions = booksService.getAuthorsAssocQueryFilters(req.query);
-
-        const books = await db.Book.findAll({
-            include: [
-                {
-                    model: db.Author,
-                    as: 'author',
-                    attributes: ['name'],
-                    where: authorConditions
-                }
-            ],
-            where: booksConditions
-        });
+        const books = await booksService.getAllBooks(req.query);
         return res.status(200).json(books);
     } catch (err) {
         return res.status(500).json({message: `ERROR: ${err.message}`});
@@ -51,13 +38,13 @@ exports.deleteBook = async function (req, res) {
         const bookID = req.params.bookID;
 
         let book = await db.Book.findOne({
-            id: bookID
+            where: {
+                id: bookID
+            }
         });
 
         if (!book) {
-            return res.status(404).json({
-                message: `ERROR: No author exists with id ${bookID}`
-            })
+            return res.status(404).send();
         }
 
         await book.destroy();

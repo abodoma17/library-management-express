@@ -3,6 +3,23 @@ const ValidationError = require("../errors/validationError");
 const InstanceNotFoundError = require("../errors/instanceNotFoundError");
 const {Op} = require("sequelize");
 
+exports.getAllBooks = async (queryParams = {}) => {
+    const booksConditions = _getBooksQueryConditions(queryParams);
+    const authorConditions = _getAuthorsAssocQueryConditions(queryParams);
+
+    return await db.Book.findAll({
+        include: [
+            {
+                model: db.Author,
+                as: 'author',
+                attributes: ['name'],
+                where: authorConditions
+            }
+        ],
+        where: booksConditions
+    })
+}
+
 exports.createBook = async (body) => {
     const {title, isbn, shelf_location, available_quantity, author_id} = body;
 
@@ -30,44 +47,6 @@ exports.createBook = async (body) => {
         ...book.get(),
         author: authorData
     };
-};
-
-exports.getBooksQueryFilters = (queryParams) => {
-    let conditions = {};
-
-    if (!queryParams) {
-        return conditions;
-    }
-
-    if (queryParams.title) {
-        conditions.title = {
-            [Op.like]: `%${queryParams.title}%`
-        };
-    }
-
-    if (queryParams.isbn) {
-        conditions.isbn = {
-            [Op.like]: `%${queryParams.isbn}%`
-        }
-    }
-
-    return conditions;
-};
-
-exports.getAuthorsAssocQueryFilters = (queryParams) => {
-    let conditions = {};
-
-    if (!queryParams) {
-        return conditions;
-    }
-
-    if (queryParams.author_name) {
-        conditions.name = {
-            [Op.like]: `%${queryParams.author_name}%`
-        }
-    }
-
-    return conditions;
 };
 
 exports.getBookById = async (bookID) => {
@@ -118,6 +97,44 @@ exports.updateBook = async (bookID, body) => {
         author: authorData
     };
 }
+
+_getBooksQueryConditions = (queryParams) => {
+    let conditions = {};
+
+    if (!queryParams) {
+        return conditions;
+    }
+
+    if (queryParams.title) {
+        conditions.title = {
+            [Op.like]: `%${queryParams.title}%`
+        };
+    }
+
+    if (queryParams.isbn) {
+        conditions.isbn = {
+            [Op.like]: `%${queryParams.isbn}%`
+        }
+    }
+
+    return conditions;
+};
+
+_getAuthorsAssocQueryConditions = (queryParams) => {
+    let conditions = {};
+
+    if (!queryParams) {
+        return conditions;
+    }
+
+    if (queryParams.author_name) {
+        conditions.name = {
+            [Op.like]: `%${queryParams.author_name}%`
+        }
+    }
+
+    return conditions;
+};
 
 async function isISBNExists(isbn, bookID = 0) {
     if (!isbn) {
